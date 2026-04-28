@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a1209">
+<meta name="format-detection" content="telephone=no">
 <title>富士山 · Find Fuji</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;800&family=Josefin+Sans:wght@100;300;400&display=swap" rel="stylesheet">
@@ -20,7 +23,7 @@
     --shadow: rgba(26,18,9,0.4);
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   html, body {
     width: 100%; height: 100%;
@@ -28,13 +31,19 @@
     font-family: 'Josefin Sans', sans-serif;
     color: var(--cream);
     overflow: hidden;
+    overscroll-behavior: none;
     touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
   }
 
   /* Washi paper texture overlay */
   body::before {
     content: '';
-    position: fixed; inset: 0;
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
     background-image:
       radial-gradient(ellipse at 20% 80%, rgba(201,168,76,0.08) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 20%, rgba(192,57,43,0.06) 0%, transparent 50%),
@@ -45,8 +54,14 @@
   .app {
     position: relative; z-index: 1;
     width: 100%; height: 100%;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: space-between;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
     padding: 3vh 6vw 4vh;
   }
 
@@ -88,12 +103,23 @@
 
   /* ── Compass stage ── */
   .compass-stage {
+    -webkit-flex: 1;
     flex: 1;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
     width: 100%;
-    gap: 2.5vh;
     padding-top: 1vh;
+  }
+
+  /* Replaces gap: 2.5vh — Safari <14.1 does not support flexbox gap */
+  .compass-stage > * + * {
+    margin-top: 2.5vh;
   }
 
   /* Outer ring */
@@ -104,19 +130,29 @@
   }
 
   .compass-ring svg.ring-svg {
-    position: absolute; inset: 0;
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
     width: 100%; height: 100%;
   }
 
   /* Arrow container rotates */
   .arrow-wrap {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    -webkit-transition: -webkit-transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
   }
 
   .arrow-wrap svg.arrow-svg {
     width: 58%; height: 58%;
+    -webkit-filter: drop-shadow(0 0 16px rgba(192,57,43,0.7));
     filter: drop-shadow(0 0 16px rgba(192,57,43,0.7));
   }
 
@@ -127,6 +163,7 @@
     border-radius: 50%;
     background: var(--cream);
     top: 50%; left: 50%;
+    -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
     box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px var(--gold);
     z-index: 2;
@@ -141,18 +178,25 @@
     color: var(--warm-grey);
     pointer-events: none;
   }
-  .cardinal.n { top: 4%; left: 50%; transform: translateX(-50%); }
-  .cardinal.s { bottom: 4%; left: 50%; transform: translateX(-50%); }
-  .cardinal.e { right: 4%; top: 50%; transform: translateY(-50%); }
-  .cardinal.w { left: 4%; top: 50%; transform: translateY(-50%); }
+  .cardinal.n { top: 4%; left: 50%; -webkit-transform: translateX(-50%); transform: translateX(-50%); }
+  .cardinal.s { bottom: 4%; left: 50%; -webkit-transform: translateX(-50%); transform: translateX(-50%); }
+  .cardinal.e { right: 4%; top: 50%; -webkit-transform: translateY(-50%); transform: translateY(-50%); }
+  .cardinal.w { left: 4%; top: 50%; -webkit-transform: translateY(-50%); transform: translateY(-50%); }
 
   /* ── Info strip ── */
   .info-strip {
+    display: -webkit-flex;
     display: flex;
-    gap: 6vw;
+    -webkit-align-items: flex-end;
     align-items: flex-end;
+    -webkit-justify-content: center;
     justify-content: center;
     width: 100%;
+  }
+
+  /* Replaces gap: 6vw — Safari <14.1 does not support flexbox gap */
+  .info-strip > * + * {
+    margin-left: 6vw;
   }
 
   .info-block {
@@ -180,6 +224,7 @@
   .divider {
     width: 1px;
     height: 2.5rem;
+    background: -webkit-linear-gradient(top, transparent, var(--warm-grey), transparent);
     background: linear-gradient(to bottom, transparent, var(--warm-grey), transparent);
     opacity: 0.4;
   }
@@ -190,23 +235,34 @@
     letter-spacing: 0.3em;
     text-transform: uppercase;
     color: var(--warm-grey);
-    display: flex; align-items: center; gap: 0.5rem;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
   }
 
   .status-dot {
     width: 6px; height: 6px;
     border-radius: 50%;
     background: var(--warm-grey);
+    -webkit-flex-shrink: 0;
     flex-shrink: 0;
+    margin-right: 0.5rem;
+    -webkit-transition: background 0.5s;
     transition: background 0.5s;
   }
   .status-dot.green { background: #4caf82; box-shadow: 0 0 6px #4caf82; }
   .status-dot.red   { background: var(--red); }
   .status-dot.pulse {
     background: var(--gold);
+    -webkit-animation: pulse 1.2s ease-in-out infinite;
     animation: pulse 1.2s ease-in-out infinite;
   }
 
+  @-webkit-keyframes pulse {
+    0%, 100% { opacity: 1; -webkit-transform: scale(1); transform: scale(1); }
+    50% { opacity: 0.5; -webkit-transform: scale(0.7); transform: scale(0.7); }
+  }
   @keyframes pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.5; transform: scale(0.7); }
@@ -214,13 +270,25 @@
 
   /* ── Permission screen ── */
   #permission-screen {
-    position: fixed; inset: 0; z-index: 100;
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    z-index: 100;
     background: var(--ink);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 2rem;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
     padding: 8vw;
     text-align: center;
+  }
+
+  /* Replaces gap: 2rem — Safari <14.1 does not support flexbox gap */
+  #permission-screen > * + * {
+    margin-top: 2rem;
   }
 
   #permission-screen .perm-kanji {
@@ -258,12 +326,24 @@
     letter-spacing: 0.45em;
     text-transform: uppercase;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    -webkit-transition: background 0.3s, color 0.3s;
     transition: background 0.3s, color 0.3s;
   }
 
-  .btn-start:hover, .btn-start:active {
+  .btn-start:hover, .btn-start:active, .btn-start:focus {
     background: var(--gold);
     color: var(--ink);
+    outline: none;
+  }
+
+  .location-hint {
+    font-size: clamp(0.6rem, 2.4vw, 0.72rem);
+    color: var(--warm-grey);
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+    max-width: 24rem;
   }
 
   /* ── Fuji angle indicator on ring ── */
@@ -278,11 +358,17 @@
   .scanline {
     position: fixed; top: 0; left: 0; right: 0;
     height: 2px;
+    background: -webkit-linear-gradient(left, transparent, rgba(201,168,76,0.15), transparent);
     background: linear-gradient(to right, transparent, rgba(201,168,76,0.15), transparent);
+    -webkit-animation: scan 6s linear infinite;
     animation: scan 6s linear infinite;
     pointer-events: none; z-index: 200;
   }
 
+  @-webkit-keyframes scan {
+    from { top: 0; }
+    to { top: 100%; }
+  }
   @keyframes scan {
     from { top: 0; }
     to { top: 100%; }
@@ -290,7 +376,12 @@
 
   /* Intro fade */
   .fade-in {
+    -webkit-animation: fadeIn 0.8s ease both;
     animation: fadeIn 0.8s ease both;
+  }
+  @-webkit-keyframes fadeIn {
+    from { opacity: 0; -webkit-transform: translateY(8px); transform: translateY(8px); }
+    to   { opacity: 1; -webkit-transform: translateY(0); transform: translateY(0); }
   }
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(8px); }
@@ -298,7 +389,7 @@
   }
 
   /* hide on load */
-  #main-app { opacity: 0; transition: opacity 0.8s; }
+  #main-app { opacity: 0; -webkit-transition: opacity 0.8s; transition: opacity 0.8s; }
   #main-app.visible { opacity: 1; }
 </style>
 </head>
@@ -313,6 +404,7 @@
   <h2>Find Fuji</h2>
   <p>This app uses your GPS location and device compass to point you toward Mt. Fuji — wherever you are in the world.</p>
   <button class="btn-start" onclick="startApp()">Begin ・ 始める</button>
+  <p class="location-hint">Allow location access when your browser asks — this app needs GPS to work.</p>
 </div>
 
 <!-- Main app -->
@@ -429,65 +521,64 @@
 
 <script>
 // ── Mt. Fuji coordinates ──────────────────────────────────────────────────
-const FUJI_LAT = 35.3606;
-const FUJI_LON = 138.7274;
+var FUJI_LAT = 35.3606;
+var FUJI_LON = 138.7274;
 
 // ── State ─────────────────────────────────────────────────────────────────
-let userLat = null, userLon = null;
-let compassHeading = null; // degrees: true north at top of device
-let geoWatchId = null;
-let compassAvailable = false;
-let usingAbsolute = false;
+var userLat = null, userLon = null;
+var compassHeading = null; // degrees: true north at top of device
+var geoWatchId = null;
+var compassAvailable = false;
 
 // ── Math helpers ──────────────────────────────────────────────────────────
 function toRad(d) { return d * Math.PI / 180; }
 function toDeg(r) { return r * 180 / Math.PI; }
 
 function bearingTo(lat1, lon1, lat2, lon2) {
-  const φ1 = toRad(lat1), φ2 = toRad(lat2);
-  const Δλ = toRad(lon2 - lon1);
-  const y = Math.sin(Δλ) * Math.cos(φ2);
-  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  var phi1 = toRad(lat1), phi2 = toRad(lat2);
+  var dl = toRad(lon2 - lon1);
+  var y = Math.sin(dl) * Math.cos(phi2);
+  var x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(dl);
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
 function distKm(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dφ = toRad(lat2 - lat1), dλ = toRad(lon2 - lon1);
-  const a = Math.sin(dφ/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dλ/2)**2;
+  var R = 6371;
+  var dphi = toRad(lat2 - lat1), dl = toRad(lon2 - lon1);
+  var a = Math.pow(Math.sin(dphi / 2), 2) +
+          Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.pow(Math.sin(dl / 2), 2);
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 // ── UI helpers ─────────────────────────────────────────────────────────────
 function setStatus(msg, state) { // state: 'pulse' | 'green' | 'red'
   document.getElementById('statusText').textContent = msg;
-  const dot = document.getElementById('statusDot');
+  var dot = document.getElementById('statusDot');
   dot.className = 'status-dot ' + state;
 }
 
 function updateArrow() {
   if (userLat === null) return;
 
-  const bearing = bearingTo(userLat, userLon, FUJI_LAT, FUJI_LON);
-  const dist = distKm(userLat, userLon, FUJI_LAT, FUJI_LON);
+  var bearing = bearingTo(userLat, userLon, FUJI_LAT, FUJI_LON);
+  var dist = distKm(userLat, userLon, FUJI_LAT, FUJI_LON);
 
   document.getElementById('bearingVal').textContent = Math.round(bearing) + '°';
   document.getElementById('distVal').textContent = dist > 999
     ? (dist / 1000).toFixed(1) + 'k'
     : Math.round(dist);
 
-  let arrowAngle;
+  var arrowAngle;
   if (compassHeading !== null) {
-    // Rotate arrow so it points at Fuji relative to phone orientation
     arrowAngle = (bearing - compassHeading + 360) % 360;
     document.getElementById('headingVal').textContent = Math.round(compassHeading) + '°';
   } else {
-    // No compass — show absolute bearing (north = up)
     arrowAngle = bearing;
     document.getElementById('headingVal').textContent = 'N/A';
   }
 
-  document.getElementById('arrowWrap').style.transform = `rotate(${arrowAngle}deg)`;
+  document.getElementById('arrowWrap').style.webkitTransform = 'rotate(' + arrowAngle + 'deg)';
+  document.getElementById('arrowWrap').style.transform = 'rotate(' + arrowAngle + 'deg)';
 }
 
 // ── Geolocation ────────────────────────────────────────────────────────────
@@ -496,7 +587,7 @@ function startGeo() {
     setStatus('Geolocation not supported', 'red'); return;
   }
   geoWatchId = navigator.geolocation.watchPosition(
-    pos => {
+    function(pos) {
       userLat = pos.coords.latitude;
       userLon = pos.coords.longitude;
       updateArrow();
@@ -506,8 +597,12 @@ function startGeo() {
         setStatus('Live compass active', 'green');
       }
     },
-    err => {
-      setStatus('Location error: ' + err.message, 'red');
+    function(err) {
+      if (err.code === 1) {
+        setStatus('Location blocked — enable it in browser settings', 'red');
+      } else {
+        setStatus('Location error: ' + err.message, 'red');
+      }
     },
     { enableHighAccuracy: true, maximumAge: 2000 }
   );
@@ -515,16 +610,14 @@ function startGeo() {
 
 // ── Device Orientation ─────────────────────────────────────────────────────
 function handleOrientation(e) {
-  let heading = null;
+  var heading = null;
 
-  if (e.webkitCompassHeading !== undefined) {
-    // iOS: webkitCompassHeading is clockwise from true north
+  if (typeof e.webkitCompassHeading !== 'undefined' && e.webkitCompassHeading !== null) {
+    // iOS Safari / DuckDuckGo on iOS: clockwise from true north
     heading = e.webkitCompassHeading;
-  } else if (e.absolute && e.alpha !== null) {
-    // Android absolute: alpha is CCW from north → convert
-    heading = (360 - e.alpha) % 360;
-  } else if (e.alpha !== null) {
-    // Non-absolute fallback (screen north, not magnetic)
+  } else if (e.alpha !== null && e.alpha !== undefined) {
+    // Chrome Android (deviceorientationabsolute): alpha is CCW from north
+    // Firefox Android / other: alpha is relative to initial orientation
     heading = (360 - e.alpha) % 360;
   }
 
@@ -536,18 +629,20 @@ function handleOrientation(e) {
 }
 
 function startCompass() {
-  // Modern browsers require permission request first (iOS 13+)
-  if (typeof DeviceOrientationEvent !== 'undefined' &&
-      typeof DeviceOrientationEvent.requestPermission === 'function') {
+  if (typeof DeviceOrientationEvent === 'undefined') return;
+
+  // iOS 13+ requires explicit permission request
+  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission()
-      .then(res => {
+      .then(function(res) {
         if (res === 'granted') {
           window.addEventListener('deviceorientationabsolute', handleOrientation, true);
           window.addEventListener('deviceorientation', handleOrientation, true);
         }
       })
-      .catch(() => {});
+      .catch(function() {});
   } else {
+    // Chrome, Firefox, DuckDuckGo on Android — no permission dialog needed
     window.addEventListener('deviceorientationabsolute', handleOrientation, true);
     window.addEventListener('deviceorientation', handleOrientation, true);
   }
@@ -556,8 +651,8 @@ function startCompass() {
 // ── Entry point (called by button) ────────────────────────────────────────
 function startApp() {
   document.getElementById('permission-screen').style.display = 'none';
-  const app = document.getElementById('main-app');
-  app.classList.add('visible');
+  var app = document.getElementById('main-app');
+  app.className = app.className + ' visible';
 
   setStatus('Locating you…', 'pulse');
   startCompass();
@@ -566,19 +661,19 @@ function startApp() {
 
 // ── Generate tick marks ────────────────────────────────────────────────────
 (function drawTicks() {
-  const g = document.getElementById('ticks');
+  var g = document.getElementById('ticks');
   if (!g) return;
-  for (let i = 0; i < 72; i++) {
-    const angle = i * 5;
-    const rad = toRad(angle - 90);
-    const isCardinal = angle % 90 === 0;
-    const r1 = isCardinal ? 84 : 88;
-    const r2 = 92;
-    const cx = 100 + r1 * Math.cos(rad);
-    const cy = 100 + r1 * Math.sin(rad);
-    const x2 = 100 + r2 * Math.cos(rad);
-    const y2 = 100 + r2 * Math.sin(rad);
-    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+  for (var i = 0; i < 72; i++) {
+    var angle = i * 5;
+    var rad = toRad(angle - 90);
+    var isCardinal = angle % 90 === 0;
+    var r1 = isCardinal ? 84 : 88;
+    var r2 = 92;
+    var cx = 100 + r1 * Math.cos(rad);
+    var cy = 100 + r1 * Math.sin(rad);
+    var x2 = 100 + r2 * Math.cos(rad);
+    var y2 = 100 + r2 * Math.sin(rad);
+    var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     line.setAttribute('x1', cx);
     line.setAttribute('y1', cy);
     line.setAttribute('x2', x2);
