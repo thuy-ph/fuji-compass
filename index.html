@@ -338,6 +338,14 @@
     outline: none;
   }
 
+  .location-hint {
+    font-size: clamp(0.6rem, 2.4vw, 0.72rem);
+    color: var(--warm-grey);
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+    max-width: 24rem;
+  }
+
   /* ── Fuji angle indicator on ring ── */
   .bearing-text {
     font-family: 'Shippori Mincho', serif;
@@ -396,6 +404,7 @@
   <h2>Find Fuji</h2>
   <p>This app uses your GPS location and device compass to point you toward Mt. Fuji — wherever you are in the world.</p>
   <button class="btn-start" onclick="startApp()">Begin ・ 始める</button>
+  <p class="location-hint">Allow location access when your browser asks — this app needs GPS to work.</p>
 </div>
 
 <!-- Main app -->
@@ -589,7 +598,11 @@ function startGeo() {
       }
     },
     function(err) {
-      setStatus('Location error: ' + err.message, 'red');
+      if (err.code === 1) {
+        setStatus('Location blocked — enable it in browser settings', 'red');
+      } else {
+        setStatus('Location error: ' + err.message, 'red');
+      }
     },
     { enableHighAccuracy: true, maximumAge: 2000 }
   );
