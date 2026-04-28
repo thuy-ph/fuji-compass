@@ -346,6 +346,27 @@
     max-width: 24rem;
   }
 
+  .bmc-link {
+    display: inline-block;
+    font-size: clamp(0.55rem, 2.2vw, 0.65rem);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--warm-grey);
+    text-decoration: none;
+    opacity: 0.5;
+    -webkit-transition: opacity 0.3s;
+    transition: opacity 0.3s;
+  }
+  .bmc-link:hover, .bmc-link:focus { opacity: 1; outline: none; }
+
+  /* Floating coffee link in main app */
+  .bmc-float {
+    position: absolute;
+    bottom: 2vh;
+    right: 6vw;
+    z-index: 2;
+  }
+
   /* ── Fuji angle indicator on ring ── */
   .bearing-text {
     font-family: 'Shippori Mincho', serif;
@@ -405,6 +426,7 @@
   <p>This app uses your GPS location and device compass to point you toward Mt. Fuji — wherever you are in the world.</p>
   <button class="btn-start" onclick="startApp()">Begin ・ 始める</button>
   <p class="location-hint">Allow location access when your browser asks — this app needs GPS to work.</p>
+  <a href="https://www.buymeacoffee.com/thuypham" target="_blank" rel="noopener" class="bmc-link">☕ Buy me a coffee</a>
 </div>
 
 <!-- Main app -->
@@ -492,6 +514,9 @@
     </div>
 
   </div>
+
+  <!-- Buy me a coffee -->
+  <a href="https://www.buymeacoffee.com/thuypham" target="_blank" rel="noopener" class="bmc-link bmc-float">☕ Buy me a coffee</a>
 
   <!-- Mountain silhouette -->
   <div class="mountain-wrap">
