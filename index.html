@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>富士山 · Find Fuji</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;800&family=Josefin+Sans:wght@100;300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1209;
+    --red: #c0392b;
+    --red-light: #e74c3c;
+    --cream: #f5ede0;
+    --warm-grey: #8c7b6b;
+    --snow: #faf7f2;
+    --gold: #c9a84c;
+    --shadow: rgba(26,18,9,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--ink);
+    font-family: 'Josefin Sans', sans-serif;
+    color: var(--cream);
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  /* Washi paper texture overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(ellipse at 20% 80%, rgba(201,168,76,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(192,57,43,0.06) 0%, transparent 50%),
+      url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  .app {
+    position: relative; z-index: 1;
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: space-between;
+    padding: 3vh 6vw 4vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    width: 100%;
+  }
+
+  .kanji {
+    font-family: 'Shippori Mincho', serif;
+    font-size: clamp(2.4rem, 8vw, 3.8rem);
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    color: var(--cream);
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(201,168,76,0.3);
+  }
+
+  .subtitle {
+    font-size: clamp(0.6rem, 2.5vw, 0.75rem);
+    font-weight: 100;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    color: var(--warm-grey);
+    margin-top: 0.5rem;
+  }
+
+  /* ── Mountain silhouette ── */
+  .mountain-wrap {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 38vh;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .mountain-wrap svg { width: 100%; height: 100%; }
+
+  /* ── Compass stage ── */
+  .compass-stage {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    width: 100%;
+    gap: 2.5vh;
+    padding-top: 1vh;
+  }
+
+  /* Outer ring */
+  .compass-ring {
+    position: relative;
+    width: min(68vw, 300px);
+    height: min(68vw, 300px);
+  }
+
+  .compass-ring svg.ring-svg {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+
+  /* Arrow container rotates */
+  .arrow-wrap {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .arrow-wrap svg.arrow-svg {
+    width: 58%; height: 58%;
+    filter: drop-shadow(0 0 16px rgba(192,57,43,0.7));
+  }
+
+  /* Centre dot */
+  .centre-dot {
+    position: absolute;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--cream);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px var(--gold);
+    z-index: 2;
+  }
+
+  /* Cardinal labels */
+  .cardinal {
+    position: absolute;
+    font-size: clamp(0.55rem, 2vw, 0.7rem);
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    color: var(--warm-grey);
+    pointer-events: none;
+  }
+  .cardinal.n { top: 4%; left: 50%; transform: translateX(-50%); }
+  .cardinal.s { bottom: 4%; left: 50%; transform: translateX(-50%); }
+  .cardinal.e { right: 4%; top: 50%; transform: translateY(-50%); }
+  .cardinal.w { left: 4%; top: 50%; transform: translateY(-50%); }
+
+  /* ── Info strip ── */
+  .info-strip {
+    display: flex;
+    gap: 6vw;
+    align-items: flex-end;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .info-block {
+    text-align: center;
+  }
+
+  .info-val {
+    font-family: 'Shippori Mincho', serif;
+    font-size: clamp(1.6rem, 6vw, 2.4rem);
+    font-weight: 600;
+    color: var(--cream);
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .info-label {
+    font-size: clamp(0.5rem, 2vw, 0.62rem);
+    font-weight: 100;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--warm-grey);
+    margin-top: 0.35rem;
+  }
+
+  .divider {
+    width: 1px;
+    height: 2.5rem;
+    background: linear-gradient(to bottom, transparent, var(--warm-grey), transparent);
+    opacity: 0.4;
+  }
+
+  /* ── Status / permission ── */
+  .status-pill {
+    font-size: clamp(0.55rem, 2.2vw, 0.68rem);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--warm-grey);
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--warm-grey);
+    flex-shrink: 0;
+    transition: background 0.5s;
+  }
+  .status-dot.green { background: #4caf82; box-shadow: 0 0 6px #4caf82; }
+  .status-dot.red   { background: var(--red); }
+  .status-dot.pulse {
+    background: var(--gold);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  /* ── Permission screen ── */
+  #permission-screen {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--ink);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 2rem;
+    padding: 8vw;
+    text-align: center;
+  }
+
+  #permission-screen .perm-kanji {
+    font-family: 'Shippori Mincho', serif;
+    font-size: clamp(3rem, 14vw, 5rem);
+    color: var(--red);
+    line-height: 1;
+    text-shadow: 0 0 60px rgba(192,57,43,0.4);
+  }
+
+  #permission-screen h2 {
+    font-weight: 100;
+    letter-spacing: 0.3em;
+    font-size: clamp(0.7rem, 3vw, 0.9rem);
+    text-transform: uppercase;
+    color: var(--cream);
+  }
+
+  #permission-screen p {
+    font-size: clamp(0.75rem, 3vw, 0.9rem);
+    color: var(--warm-grey);
+    line-height: 1.8;
+    letter-spacing: 0.05em;
+    max-width: 28rem;
+  }
+
+  .btn-start {
+    margin-top: 0.5rem;
+    padding: 1rem 3rem;
+    border: 1px solid var(--gold);
+    background: transparent;
+    color: var(--gold);
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: clamp(0.6rem, 2.5vw, 0.75rem);
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .btn-start:hover, .btn-start:active {
+    background: var(--gold);
+    color: var(--ink);
+  }
+
+  /* ── Fuji angle indicator on ring ── */
+  .bearing-text {
+    font-family: 'Shippori Mincho', serif;
+    font-size: clamp(0.6rem, 2.5vw, 0.75rem);
+    fill: var(--gold);
+    text-anchor: middle;
+  }
+
+  /* Scan line */
+  .scanline {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, rgba(201,168,76,0.15), transparent);
+    animation: scan 6s linear infinite;
+    pointer-events: none; z-index: 200;
+  }
+
+  @keyframes scan {
+    from { top: 0; }
+    to { top: 100%; }
+  }
+
+  /* Intro fade */
+  .fade-in {
+    animation: fadeIn 0.8s ease both;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* hide on load */
+  #main-app { opacity: 0; transition: opacity 0.8s; }
+  #main-app.visible { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- Scan line atmosphere -->
+<div class="scanline"></div>
+
+<!-- Permission / Start screen -->
+<div id="permission-screen">
+  <div class="perm-kanji">富士</div>
+  <h2>Find Fuji</h2>
+  <p>This app uses your GPS location and device compass to point you toward Mt. Fuji — wherever you are in the world.</p>
+  <button class="btn-start" onclick="startApp()">Begin ・ 始める</button>
+</div>
+
+<!-- Main app -->
+<div id="main-app">
+  <div class="app">
+
+    <!-- Header -->
+    <div class="header fade-in">
+      <div class="kanji">富士山</div>
+      <div class="subtitle">Mount Fuji Compass</div>
+    </div>
+
+    <!-- Compass -->
+    <div class="compass-stage">
+      <div class="compass-ring" id="compassRing">
+
+        <!-- Decorative ring SVG -->
+        <svg class="ring-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <!-- Outer thin ring -->
+          <circle cx="100" cy="100" r="97" fill="none" stroke="#3a2f22" stroke-width="0.5"/>
+          <!-- Main ring -->
+          <circle cx="100" cy="100" r="92" fill="none" stroke="#2e2218" stroke-width="1.5"/>
+          <!-- Gold accent ring -->
+          <circle cx="100" cy="100" r="89" fill="none" stroke="#c9a84c" stroke-width="0.4" opacity="0.5"/>
+          <!-- Tick marks -->
+          <g id="ticks" stroke="#5a4a38" stroke-width="0.6">
+            <!-- 72 ticks at 5° each -->
+          </g>
+          <!-- Major cardinal ticks -->
+          <line x1="100" y1="8"   x2="100" y2="20"  stroke="#c9a84c" stroke-width="1.2" opacity="0.7"/>
+          <line x1="100" y1="180" x2="100" y2="192" stroke="#5a4a38" stroke-width="1.2" opacity="0.7"/>
+          <line x1="8"   y1="100" x2="20"  y2="100" stroke="#5a4a38" stroke-width="1.2" opacity="0.7"/>
+          <line x1="180" y1="100" x2="192" y2="100" stroke="#5a4a38" stroke-width="1.2" opacity="0.7"/>
+          <!-- Inner decorative ring -->
+          <circle cx="100" cy="100" r="72" fill="none" stroke="#2a1f14" stroke-width="8"/>
+          <circle cx="100" cy="100" r="68" fill="none" stroke="#3a2f22" stroke-width="0.5"/>
+        </svg>
+
+        <!-- Rotating arrow -->
+        <div class="arrow-wrap" id="arrowWrap">
+          <svg class="arrow-svg" viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
+            <!-- North / Fuji tip -->
+            <polygon points="50,4 62,80 50,72 38,80" fill="#c0392b"/>
+            <!-- South tail -->
+            <polygon points="50,156 38,80 50,88 62,80" fill="#4a3728"/>
+            <!-- Cap on tip -->
+            <circle cx="50" cy="8" r="4" fill="#e74c3c"/>
+          </svg>
+        </div>
+
+        <!-- Cardinals -->
+        <span class="cardinal n">N</span>
+        <span class="cardinal s">S</span>
+        <span class="cardinal e">E</span>
+        <span class="cardinal w">W</span>
+
+        <!-- Centre -->
+        <div class="centre-dot"></div>
+      </div>
+
+      <!-- Info strip -->
+      <div class="info-strip">
+        <div class="info-block">
+          <div class="info-val" id="distVal">—</div>
+          <div class="info-label">km to Fuji</div>
+        </div>
+        <div class="divider"></div>
+        <div class="info-block">
+          <div class="info-val" id="bearingVal">—°</div>
+          <div class="info-label">bearing</div>
+        </div>
+        <div class="divider"></div>
+        <div class="info-block">
+          <div class="info-val" id="headingVal">—°</div>
+          <div class="info-label">heading</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Status -->
+    <div class="status-pill">
+      <div class="status-dot pulse" id="statusDot"></div>
+      <span id="statusText">Locating you…</span>
+    </div>
+
+  </div>
+
+  <!-- Mountain silhouette -->
+  <div class="mountain-wrap">
+    <svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="mtGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#2a1f14" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#1a1209" stop-opacity="1"/>
+        </linearGradient>
+        <linearGradient id="snowGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f5ede0" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#f5ede0" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <!-- Far mountains -->
+      <path d="M-20 160 L60 80 L120 110 L180 60 L240 95 L300 55 L360 90 L420 70 L420 160Z"
+            fill="#1f1710" opacity="0.6"/>
+      <!-- Main Fuji shape -->
+      <path d="M40 160 L200 10 L360 160Z" fill="url(#mtGrad)"/>
+      <!-- Snow cap -->
+      <path d="M200 10 L170 52 L200 44 L230 52Z" fill="url(#snowGrad)" opacity="0.5"/>
+      <!-- Subtle ridge line -->
+      <path d="M40 160 L200 10 L360 160" fill="none" stroke="#c9a84c" stroke-width="0.3" opacity="0.2"/>
+    </svg>
+  </div>
+</div>
+
+<script>
+// ── Mt. Fuji coordinates ──────────────────────────────────────────────────
+const FUJI_LAT = 35.3606;
+const FUJI_LON = 138.7274;
+
+// ── State ─────────────────────────────────────────────────────────────────
+let userLat = null, userLon = null;
+let compassHeading = null; // degrees: true north at top of device
+let geoWatchId = null;
+let compassAvailable = false;
+let usingAbsolute = false;
+
+// ── Math helpers ──────────────────────────────────────────────────────────
+function toRad(d) { return d * Math.PI / 180; }
+function toDeg(r) { return r * 180 / Math.PI; }
+
+function bearingTo(lat1, lon1, lat2, lon2) {
+  const φ1 = toRad(lat1), φ2 = toRad(lat2);
+  const Δλ = toRad(lon2 - lon1);
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
+function distKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dφ = toRad(lat2 - lat1), dλ = toRad(lon2 - lon1);
+  const a = Math.sin(dφ/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dλ/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// ── UI helpers ─────────────────────────────────────────────────────────────
+function setStatus(msg, state) { // state: 'pulse' | 'green' | 'red'
+  document.getElementById('statusText').textContent = msg;
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot ' + state;
+}
+
+function updateArrow() {
+  if (userLat === null) return;
+
+  const bearing = bearingTo(userLat, userLon, FUJI_LAT, FUJI_LON);
+  const dist = distKm(userLat, userLon, FUJI_LAT, FUJI_LON);
+
+  document.getElementById('bearingVal').textContent = Math.round(bearing) + '°';
+  document.getElementById('distVal').textContent = dist > 999
+    ? (dist / 1000).toFixed(1) + 'k'
+    : Math.round(dist);
+
+  let arrowAngle;
+  if (compassHeading !== null) {
+    // Rotate arrow so it points at Fuji relative to phone orientation
+    arrowAngle = (bearing - compassHeading + 360) % 360;
+    document.getElementById('headingVal').textContent = Math.round(compassHeading) + '°';
+  } else {
+    // No compass — show absolute bearing (north = up)
+    arrowAngle = bearing;
+    document.getElementById('headingVal').textContent = 'N/A';
+  }
+
+  document.getElementById('arrowWrap').style.transform = `rotate(${arrowAngle}deg)`;
+}
+
+// ── Geolocation ────────────────────────────────────────────────────────────
+function startGeo() {
+  if (!navigator.geolocation) {
+    setStatus('Geolocation not supported', 'red'); return;
+  }
+  geoWatchId = navigator.geolocation.watchPosition(
+    pos => {
+      userLat = pos.coords.latitude;
+      userLon = pos.coords.longitude;
+      updateArrow();
+      if (!compassAvailable) {
+        setStatus('No compass · bearing is from North', 'green');
+      } else {
+        setStatus('Live compass active', 'green');
+      }
+    },
+    err => {
+      setStatus('Location error: ' + err.message, 'red');
+    },
+    { enableHighAccuracy: true, maximumAge: 2000 }
+  );
+}
+
+// ── Device Orientation ─────────────────────────────────────────────────────
+function handleOrientation(e) {
+  let heading = null;
+
+  if (e.webkitCompassHeading !== undefined) {
+    // iOS: webkitCompassHeading is clockwise from true north
+    heading = e.webkitCompassHeading;
+  } else if (e.absolute && e.alpha !== null) {
+    // Android absolute: alpha is CCW from north → convert
+    heading = (360 - e.alpha) % 360;
+  } else if (e.alpha !== null) {
+    // Non-absolute fallback (screen north, not magnetic)
+    heading = (360 - e.alpha) % 360;
+  }
+
+  if (heading !== null) {
+    compassAvailable = true;
+    compassHeading = heading;
+    updateArrow();
+  }
+}
+
+function startCompass() {
+  // Modern browsers require permission request first (iOS 13+)
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission()
+      .then(res => {
+        if (res === 'granted') {
+          window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+          window.addEventListener('deviceorientation', handleOrientation, true);
+        }
+      })
+      .catch(() => {});
+  } else {
+    window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+    window.addEventListener('deviceorientation', handleOrientation, true);
+  }
+}
+
+// ── Entry point (called by button) ────────────────────────────────────────
+function startApp() {
+  document.getElementById('permission-screen').style.display = 'none';
+  const app = document.getElementById('main-app');
+  app.classList.add('visible');
+
+  setStatus('Locating you…', 'pulse');
+  startCompass();
+  startGeo();
+}
+
+// ── Generate tick marks ────────────────────────────────────────────────────
+(function drawTicks() {
+  const g = document.getElementById('ticks');
+  if (!g) return;
+  for (let i = 0; i < 72; i++) {
+    const angle = i * 5;
+    const rad = toRad(angle - 90);
+    const isCardinal = angle % 90 === 0;
+    const r1 = isCardinal ? 84 : 88;
+    const r2 = 92;
+    const cx = 100 + r1 * Math.cos(rad);
+    const cy = 100 + r1 * Math.sin(rad);
+    const x2 = 100 + r2 * Math.cos(rad);
+    const y2 = 100 + r2 * Math.sin(rad);
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', cx);
+    line.setAttribute('y1', cy);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+    if (isCardinal) {
+      line.setAttribute('stroke', '#c9a84c');
+      line.setAttribute('stroke-width', '1');
+      line.setAttribute('opacity', '0.6');
+    }
+    g.appendChild(line);
+  }
+})();
+</script>
+</body>
+</html>
